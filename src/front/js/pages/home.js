@@ -1,26 +1,41 @@
-import React, { useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Context } from "../store/appContext";
-import rigoImageUrl from "../../img/rigo-baby.jpg";
+import { Navigate } from "react-router-dom";
+import Login from "./login";
 import "../../styles/home.css";
 
 export const Home = () => {
-	const { store, actions } = useContext(Context);
+    const { store, actions } = useContext(Context);
+    const [loading, setLoading] = useState(true);
+    const [mounted, setMounted] = useState(true); 
+    useEffect(() => {
+        const verifyToken = async () => {
+            await actions.verifyToken();
+            if (mounted) {
+                setLoading(false);
+            }
+        };
+        if (loading) {
+            verifyToken();
+        }
 
-	return (
-		<div className="text-center mt-5">
-			<h1>Hello Rigo!!</h1>
-			<p>
-				<img src={rigoImageUrl} />
-			</p>
-			<div className="alert alert-info">
-				{store.message || "Loading message from the backend (make sure your python backend is running)..."}
-			</div>
-			<p>
-				This boilerplate comes with lots of documentation:{" "}
-				<a href="https://start.4geeksacademy.com/starters/react-flask">
-					Read documentation
-				</a>
-			</p>
-		</div>
-	);
+        return () => {
+            setMounted(false);
+        };
+    }, [loading, actions, mounted]);
+
+    if (loading) {
+        return <h1>Loading...</h1>;
+    }
+
+    if (store.auth) {
+        return <Navigate to="/private" />;
+    }
+
+    return (
+        <div className="text-center mt-5">
+            <h1>Home</h1>
+            <Login />
+        </div>
+    );
 };
